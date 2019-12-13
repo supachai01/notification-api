@@ -939,3 +939,26 @@ def check_if_reply_to_address_already_in_use(service_id, email_address):
         raise InvalidRequest(
             "Your service already uses ‘{}’ as an email reply-to address.".format(email_address), status_code=400
         )
+
+
+@service_blueprint.route('/<uuid:service_id>/smtp', methods=['GET'])
+def get_smtp(service_id):
+    resp = {"name": "email-smtp.us-east-1.amazonaws.com",
+            "port": "465",
+            "tls": "yes",
+            "username": "CDS",
+            "password": "cdsXXX-XXX-XXXX"
+            }
+    return jsonify(resp), 201
+
+
+@service_blueprint.route('/<uuid:service_id>/smtp', methods=['POST'])
+def add_smtp(service_id):
+    resp = {"success": True}
+    return jsonify(resp), 201
+
+
+@service_blueprint.route('/<uuid:service_id>/smtp', methods=['DELETE'])
+def remove_smtp(service_id):
+    resp = {"success": True}
+    return jsonify(resp), 201
