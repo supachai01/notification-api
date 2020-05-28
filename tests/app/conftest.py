@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 
 import pytest
 import pytz
+from random import randrange
 import requests_mock
 from flask import current_app, url_for
 from sqlalchemy import asc
@@ -1249,6 +1250,36 @@ def mock_sms_client(mocker):
     mocker.patch.object(mocked_client, 'get_name', return_value='Fake SMS Client')
     mocker.patch('app.delivery.send_to_providers.provider_to_use', return_value=mocked_client)
     return mocked_client
+
+
+@pytest.fixture(scope='function')
+def mocked_provider_stats(sample_user, mocker):
+    return [
+        mocker.Mock(**{
+            'id': uuid.uuid4(),
+            'display_name': 'foo',
+            'identifier': 'foo',
+            'priority': 10,
+            'notification_type': 'sms',
+            'active': True,
+            'updated_at': datetime.utcnow(),
+            'supports_international': False,
+            'created_by_name': sample_user.name,
+            'current_month_billable_sms': randrange(100)
+        }),
+        mocker.Mock(**{
+            'id': uuid.uuid4(),
+            'display_name': 'bar',
+            'identifier': 'bar',
+            'priority': 20,
+            'notification_type': 'sms',
+            'active': True,
+            'updated_at': datetime.utcnow(),
+            'supports_international': False,
+            'created_by_name': sample_user.name,
+            'current_month_billable_sms': randrange(100)
+        })
+    ]
 
 
 def datetime_in_past(days=0, seconds=0):

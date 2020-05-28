@@ -291,7 +291,7 @@ def test_get_current_sms_provider_returns_active_only(restore_provider_details):
 
 
 @freeze_time('2018-06-28 12:00')
-def test_dao_get_provider_stats(notify_db_session):
+def test_dao_get_provider_stats_returns_data_in_type_and_identifier_order(notify_db_session):
     service_1 = create_service(service_name='1')
     service_2 = create_service(service_name='2')
     sms_template_1 = create_template(service_1, 'sms')
