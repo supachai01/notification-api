@@ -11,7 +11,6 @@ from requests import HTTPError
 
 import app
 from app import aws_sns_client, mmg_client
-from app.clients.sms import SmsClient
 from app.dao import (provider_details_dao, notifications_dao)
 from app.dao.provider_details_dao import dao_switch_sms_provider_to_provider_with_identifier
 from app.delivery import send_to_providers

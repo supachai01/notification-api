@@ -21,7 +21,8 @@ delivered_email = "delivered@simulator.notify"
 perm_fail_email = "perm-fail@simulator.notify"
 temp_fail_email = "temp-fail@simulator.notify"
 
-#TODO: Add support for other providers - Twilio / Granicus
+
+# TODO: Add support for other providers - Twilio / Granicus
 def send_sms_response(provider, reference, to):
     if provider == "mmg":
         body = mmg_callback(reference, to)
