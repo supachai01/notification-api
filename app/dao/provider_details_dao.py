@@ -27,6 +27,8 @@ def get_alternative_sms_provider(identifier):
         alternate_provider = 'sns'
     elif identifier == 'sns':
         alternate_provider = 'mmg'
+    elif identifier == 'twilio':
+        alternate_provider = 'sns'
 
     return ProviderDetails.query.filter_by(identifier=alternate_provider).one()
 
