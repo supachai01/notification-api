@@ -691,16 +691,15 @@ def test_should_handle_sms_sender_and_prefix_message(
 
 def test_send_email_to_provider_uses_reply_to_from_notification(
         sample_email_template,
-        mocker):
-    mocker.patch('app.aws_ses_client.send_email', return_value='reference')
-
+        mock_email_client
+):
     db_notification = create_notification(template=sample_email_template, reply_to_text="test@test.com")
 
     send_to_providers.send_email_to_provider(
         db_notification,
     )
 
-    app.aws_ses_client.send_email.assert_called_once_with(
+    mock_email_client.send_email.assert_called_once_with(
         ANY,
         ANY,
         ANY,
@@ -713,16 +712,15 @@ def test_send_email_to_provider_uses_reply_to_from_notification(
 
 def test_send_email_to_provider_should_format_reply_to_email_address(
         sample_email_template,
-        mocker):
-    mocker.patch('app.aws_ses_client.send_email', return_value='reference')
-
+        mock_email_client
+):
     db_notification = create_notification(template=sample_email_template, reply_to_text="test@test.com\t")
 
     send_to_providers.send_email_to_provider(
         db_notification,
     )
 
-    app.aws_ses_client.send_email.assert_called_once_with(
+    mock_email_client.send_email.assert_called_once_with(
         ANY,
         ANY,
         ANY,
@@ -743,14 +741,13 @@ def test_send_sms_to_provider_should_format_phone_number(sample_notification, mo
     assert mock_sms_client.send_sms.call_args[1]['to'] == '+16502532222'
 
 
-def test_send_email_to_provider_should_format_email_address(sample_email_notification, mocker):
+def test_send_email_to_provider_should_format_email_address(sample_email_notification, mock_email_client):
     sample_email_notification.to = 'test@example.com\t'
-    send_mock = mocker.patch('app.aws_ses_client.send_email', return_value='reference')
 
     send_to_providers.send_email_to_provider(sample_email_notification)
 
     # to_addresses
-    send_mock.assert_called_once_with(
+    mock_email_client.send_email.assert_called_once_with(
         ANY,
         # to_addresses
         'test@example.com',
@@ -762,8 +759,11 @@ def test_send_email_to_provider_should_format_email_address(sample_email_notific
     )
 
 
-def test_notification_can_have_document_attachment_without_mlwr_sid(sample_email_template, mocker):
-    send_mock = mocker.patch('app.aws_ses_client.send_email', return_value='reference')
+def test_notification_can_have_document_attachment_without_mlwr_sid(
+        sample_email_template,
+        mocker,
+        mock_email_client
+):
     mlwr_mock = mocker.patch('app.delivery.send_to_providers.check_mlwr')
     personalisation = {
         "file": {"document": {"id": "foo", "direct_file_url": "http://foo.bar", "url": "http://foo.bar"}}}
@@ -774,12 +774,15 @@ def test_notification_can_have_document_attachment_without_mlwr_sid(sample_email
         db_notification,
     )
 
-    send_mock.assert_called()
+    mock_email_client.send_email.assert_called()
     mlwr_mock.assert_not_called()
 
 
-def test_notification_can_have_document_attachment_if_mlwr_sid_is_false(sample_email_template, mocker):
-    send_mock = mocker.patch('app.aws_ses_client.send_email', return_value='reference')
+def test_notification_can_have_document_attachment_if_mlwr_sid_is_false(
+        sample_email_template,
+        mocker,
+        mock_email_client
+):
     mlwr_mock = mocker.patch('app.delivery.send_to_providers.check_mlwr')
     personalisation = {
         "file": {
@@ -792,7 +795,7 @@ def test_notification_can_have_document_attachment_if_mlwr_sid_is_false(sample_e
         db_notification,
     )
 
-    send_mock.assert_called()
+    mock_email_client.send_email.assert_called()
     mlwr_mock.assert_not_called()
 
 
@@ -888,10 +891,8 @@ def test_notification_raises_error_if_message_contains_sin_pii_that_passes_luhn(
 
 def test_notification_passes_if_message_contains_sin_pii_that_fails_luhn(
         sample_email_template_with_html,
-        mocker,
-        notify_api):
-    send_mock = mocker.patch("app.aws_ses_client.send_email", return_value='reference')
-
+        mock_email_client
+):
     db_notification = create_notification(
         template=sample_email_template_with_html,
         to_field="jo.smith@example.com",
@@ -900,13 +901,12 @@ def test_notification_passes_if_message_contains_sin_pii_that_fails_luhn(
 
     send_to_providers.send_email_to_provider(db_notification)
 
-    send_mock.assert_called()
+    mock_email_client.send_email.assert_called()
 
     assert Notification.query.get(db_notification.id).status == 'sending'
 
 
-def test_notification_passes_if_message_contains_phone_number(sample_email_template_with_html, mocker):
-    send_mock = mocker.patch("app.aws_ses_client.send_email", return_value='reference')
+def test_notification_passes_if_message_contains_phone_number(sample_email_template_with_html, mock_email_client):
 
     db_notification = create_notification(
         template=sample_email_template_with_html,
@@ -916,6 +916,6 @@ def test_notification_passes_if_message_contains_phone_number(sample_email_templ
 
     send_to_providers.send_email_to_provider(db_notification)
 
-    send_mock.assert_called()
+    mock_email_client.send_email.assert_called()
 
     assert Notification.query.get(db_notification.id).status == 'sending'
