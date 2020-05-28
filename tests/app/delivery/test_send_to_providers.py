@@ -680,24 +680,20 @@ def test_should_send_sms_to_international_providers(
     ('testing', 'testing', False, 'bar'),
 ])
 def test_should_handle_sms_sender_and_prefix_message(
-    mocker,
+    mock_sms_client,
     sms_sender,
     prefix_sms,
     expected_sender,
     expected_content,
     notify_db_session
 ):
-    mocked_client = SmsClient()
-    mocker.patch.object(mocked_client, 'send_sms')
-    mocker.patch.object(mocked_client, 'get_name', return_value='Fake SMS Client')
-    mocker.patch('app.delivery.send_to_providers.provider_to_use', return_value=mocked_client)
     service = create_service_with_defined_sms_sender(sms_sender_value=sms_sender, prefix_sms=prefix_sms)
     template = create_template(service, content='bar')
     notification = create_notification(template, reply_to_text=sms_sender)
 
     send_to_providers.send_sms_to_provider(notification)
 
-    mocked_client.send_sms.assert_called_once_with(
+    mock_sms_client.send_sms.assert_called_once_with(
         content=expected_content,
         sender=expected_sender,
         to=ANY,
@@ -749,16 +745,14 @@ def test_send_email_to_provider_should_format_reply_to_email_address(
     )
 
 
-def test_send_sms_to_provider_should_format_phone_number(sample_notification, mocker):
+def test_send_sms_to_provider_should_format_phone_number(sample_notification, mock_sms_client):
     sample_notification.to = '+1 650 253 2222'
-    # TODO: instead of mocking SNS client, mock provider_to_use so it returns a mock provider
-    send_mock = mocker.patch('app.aws_sns_client.send_sms')
 
     send_to_providers.send_sms_to_provider(sample_notification)
 
     # TODO: don't test the actual return value of notification_utils.recipients.validate_and_format_phone_number
     # instead, mock that dependency and check that it's used properly
-    assert send_mock.call_args[1]['to'] == '+16502532222'
+    assert mock_sms_client.send_sms.call_args[1]['to'] == '+16502532222'
 
 
 def test_send_email_to_provider_should_format_email_address(sample_email_notification, mocker):
