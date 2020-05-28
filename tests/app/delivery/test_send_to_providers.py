@@ -406,9 +406,7 @@ def test_send_email_to_provider_should_not_send_to_provider_when_status_is_not_c
 def test_send_email_should_use_service_reply_to_email(
         sample_service,
         sample_email_template,
-        mocker):
-    mocker.patch('app.aws_ses_client.send_email', return_value='reference')
-
+        mock_email_client):
     db_notification = create_notification(template=sample_email_template, reply_to_text='foo@bar.com')
     create_reply_to_email(service=sample_service, email_address='foo@bar.com')
 
@@ -416,7 +414,7 @@ def test_send_email_should_use_service_reply_to_email(
         db_notification,
     )
 
-    app.aws_ses_client.send_email.assert_called_once_with(
+    mock_email_client.send_email.assert_called_once_with(
         ANY,
         ANY,
         ANY,
