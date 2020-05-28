@@ -11,6 +11,7 @@ from requests import HTTPError
 
 import app
 from app import aws_sns_client, mmg_client
+from app.clients.sms import SmsClient
 from app.dao import (provider_details_dao, notifications_dao)
 from app.dao.provider_details_dao import dao_switch_sms_provider_to_provider_with_identifier
 from app.delivery import send_to_providers
@@ -686,14 +687,17 @@ def test_should_handle_sms_sender_and_prefix_message(
     expected_content,
     notify_db_session
 ):
-    mocker.patch('app.aws_sns_client.send_sms')
+    mocked_client = SmsClient()
+    mocker.patch.object(mocked_client, 'send_sms')
+    mocker.patch.object(mocked_client, 'get_name', return_value='Fake SMS Client')
+    mocker.patch('app.delivery.send_to_providers.provider_to_use', return_value=mocked_client)
     service = create_service_with_defined_sms_sender(sms_sender_value=sms_sender, prefix_sms=prefix_sms)
     template = create_template(service, content='bar')
     notification = create_notification(template, reply_to_text=sms_sender)
 
     send_to_providers.send_sms_to_provider(notification)
 
-    aws_sns_client.send_sms.assert_called_once_with(
+    mocked_client.send_sms.assert_called_once_with(
         content=expected_content,
         sender=expected_sender,
         to=ANY,
