@@ -356,6 +356,7 @@ def test_send_email_to_provider_should_call_research_mode_task_response_task_if_
         sample_service,
         sample_email_template,
         mocker,
+        mock_email_client,
         research_mode,
         key_type):
     notification = create_notification(
@@ -368,14 +369,13 @@ def test_send_email_to_provider_should_call_research_mode_task_response_task_if_
 
     reference = uuid.uuid4()
     mocker.patch('app.uuid.uuid4', return_value=reference)
-    mocker.patch('app.aws_ses_client.send_email')
     mocker.patch('app.delivery.send_to_providers.send_email_response')
 
     send_to_providers.send_email_to_provider(
         notification
     )
 
-    assert not app.aws_ses_client.send_email.called
+    assert not mock_email_client.send_email.called
     app.delivery.send_to_providers.send_email_response.assert_called_once_with(str(reference), 'john@smith.com')
     persisted_notification = Notification.query.filter_by(id=notification.id).one()
     assert persisted_notification.to == 'john@smith.com'
@@ -383,7 +383,7 @@ def test_send_email_to_provider_should_call_research_mode_task_response_task_if_
     assert persisted_notification.status == 'sending'
     assert persisted_notification.sent_at <= datetime.utcnow()
     assert persisted_notification.created_at <= datetime.utcnow()
-    assert persisted_notification.sent_by == 'ses'
+    assert persisted_notification.sent_by == mock_email_client.get_name()
     assert persisted_notification.reference == str(reference)
     assert persisted_notification.billable_units == 0
 

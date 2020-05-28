@@ -11,6 +11,7 @@ from sqlalchemy import asc
 from sqlalchemy.orm.session import make_transient
 
 from app import db
+from app.clients.email import EmailClient
 from app.clients.sms import SmsClient
 from app.clients.sms.firetext import FiretextClient
 from app.dao.api_key_dao import save_model_api_key
@@ -1248,6 +1249,15 @@ def mock_sms_client(mocker):
     mocked_client = SmsClient()
     mocker.patch.object(mocked_client, 'send_sms')
     mocker.patch.object(mocked_client, 'get_name', return_value='Fake SMS Client')
+    mocker.patch('app.delivery.send_to_providers.provider_to_use', return_value=mocked_client)
+    return mocked_client
+
+
+@pytest.fixture(scope='function')
+def mock_email_client(mocker):
+    mocked_client = EmailClient()
+    mocker.patch.object(mocked_client, 'send_email')
+    mocker.patch.object(mocked_client, 'get_name', return_value='Fake Email Client')
     mocker.patch('app.delivery.send_to_providers.provider_to_use', return_value=mocked_client)
     return mocked_client
 
