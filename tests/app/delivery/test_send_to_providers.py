@@ -330,9 +330,7 @@ def test_should_send_sms_with_downgraded_content(notify_db_session, mocker):
 def test_send_sms_should_use_service_sms_sender(
         sample_service,
         sample_template,
-        mocker):
-    mocker.patch('app.aws_sns_client.send_sms')
-
+        mock_sms_client):
     sms_sender = create_service_sms_sender(service=sample_service, sms_sender='123456', is_default=False)
     db_notification = create_notification(template=sample_template, reply_to_text=sms_sender.sms_sender)
 
@@ -340,7 +338,7 @@ def test_send_sms_should_use_service_sms_sender(
         db_notification,
     )
 
-    app.aws_sns_client.send_sms.assert_called_once_with(
+    mock_sms_client.send_sms.assert_called_once_with(
         to=ANY,
         content=ANY,
         reference=ANY,
