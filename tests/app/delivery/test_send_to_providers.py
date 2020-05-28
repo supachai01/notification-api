@@ -302,7 +302,7 @@ def test_should_not_send_to_provider_when_status_is_not_created(
     response_mock.assert_not_called()
 
 
-def test_should_send_sms_with_downgraded_content(notify_db_session, mocker):
+def test_should_send_sms_with_downgraded_content(notify_db_session, mock_sms_client):
     # é, o, and u are in GSM.
     # á, ï, grapes, tabs, zero width space and ellipsis are not
     msg = "á é ï o u 🍇 foo\tbar\u200bbaz((misc))…"
@@ -315,11 +315,9 @@ def test_should_send_sms_with_downgraded_content(notify_db_session, mocker):
         personalisation={'misc': placeholder}
     )
 
-    mocker.patch('app.aws_sns_client.send_sms')
-
     send_to_providers.send_sms_to_provider(db_notification)
 
-    aws_sns_client.send_sms.assert_called_once_with(
+    mock_sms_client.send_sms.assert_called_once_with(
         to=ANY,
         content=gsm_message,
         reference=ANY,
