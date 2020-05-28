@@ -20,7 +20,7 @@ def get_provider_details_by_id(provider_details_id):
 def get_provider_details_by_identifier(identifier):
     return ProviderDetails.query.filter_by(identifier=identifier).one()
 
-
+#TODO: refactor to have logic that does not contain hardcoded providers
 def get_alternative_sms_provider(identifier):
     alternate_provider = None
     if identifier == 'mmg':
