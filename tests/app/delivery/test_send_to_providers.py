@@ -116,7 +116,7 @@ def test_should_send_personalised_template_to_correct_sms_provider_and_persist(
 
 def test_should_send_personalised_template_to_correct_email_provider_and_persist(
     sample_email_template_with_html,
-    mocker
+    mock_email_client
 ):
     db_notification = create_notification(
         template=sample_email_template_with_html,
@@ -124,13 +124,11 @@ def test_should_send_personalised_template_to_correct_email_provider_and_persist
         personalisation={'name': 'Jo'}
     )
 
-    mocker.patch('app.aws_ses_client.send_email', return_value='reference')
-
     send_to_providers.send_email_to_provider(
         db_notification
     )
 
-    app.aws_ses_client.send_email.assert_called_once_with(
+    mock_email_client.send_email.assert_called_once_with(
         '"Sample service" <sample.service@notification.alpha.canada.ca>',
         'jo.smith@example.com',
         'Jo <em>some HTML</em>',
@@ -140,31 +138,34 @@ def test_should_send_personalised_template_to_correct_email_provider_and_persist
         attachments=[]
     )
 
-    assert '<!DOCTYPE html' in app.aws_ses_client.send_email.call_args[1]['html_body']
-    assert '&lt;em&gt;some HTML&lt;/em&gt;' in app.aws_ses_client.send_email.call_args[1]['html_body']
+    assert '<!DOCTYPE html' in mock_email_client.send_email.call_args[1]['html_body']
+    assert '&lt;em&gt;some HTML&lt;/em&gt;' in mock_email_client.send_email.call_args[1]['html_body']
 
     notification = Notification.query.filter_by(id=db_notification.id).one()
     assert notification.status == 'sending'
     assert notification.sent_at <= datetime.utcnow()
-    assert notification.sent_by == 'ses'
+    assert notification.sent_by == mock_email_client.get_name()
     assert notification.personalisation == {"name": "Jo"}
 
 
-def test_should_not_send_email_message_when_service_is_inactive_notifcation_is_in_tech_failure(
-        sample_service, sample_notification, mocker
+def test_should_not_send_email_message_when_service_is_inactive_notification_is_in_tech_failure(
+        sample_service,
+        sample_notification,
+        mock_email_client
 ):
     sample_service.active = False
-    send_mock = mocker.patch("app.aws_ses_client.send_email", return_value='reference')
 
     with pytest.raises(NotificationTechnicalFailureException) as e:
         send_to_providers.send_email_to_provider(sample_notification)
     assert str(sample_notification.id) in str(e.value)
-    send_mock.assert_not_called()
+    mock_email_client.send_email.assert_not_called()
     assert Notification.query.get(sample_notification.id).status == 'technical-failure'
 
 
 def test_should_respect_custom_sending_domains(
-        sample_service, mocker, sample_email_template_with_html
+        sample_service,
+        mock_email_client,
+        sample_email_template_with_html
 ):
     db_notification = create_notification(
         template=sample_email_template_with_html,
@@ -173,11 +174,10 @@ def test_should_respect_custom_sending_domains(
     )
 
     sample_service.sending_domain = "foo.bar"
-    mocker.patch("app.aws_ses_client.send_email", return_value='reference')
 
     send_to_providers.send_email_to_provider(db_notification)
 
-    app.aws_ses_client.send_email.assert_called_once_with(
+    mock_email_client.send_email.assert_called_once_with(
         '"Sample service" <sample.service@foo.bar>',
         'jo.smith@example.com',
         'Jo <em>some HTML</em>',
