@@ -201,11 +201,9 @@ def test_should_not_send_sms_message_when_service_is_inactive_notifcation_is_in_
 
 def test_send_sms_should_use_template_version_from_notification_not_latest(
         sample_template,
-        mocker):
+        mock_sms_client):
     db_notification = create_notification(template=sample_template, to_field='+16502532222', status='created',
                                           reply_to_text=sample_template.service.get_default_sms_sender())
-
-    mocker.patch('app.aws_sns_client.send_sms')
 
     version_on_notification = sample_template.version
 
@@ -220,7 +218,7 @@ def test_send_sms_should_use_template_version_from_notification_not_latest(
         db_notification
     )
 
-    aws_sns_client.send_sms.assert_called_once_with(
+    mock_sms_client.send_sms.assert_called_once_with(
         to=validate_and_format_phone_number("+16502532222"),
         content="Sample service: This is a template:\nwith a newline",
         reference=str(db_notification.id),
