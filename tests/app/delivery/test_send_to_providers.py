@@ -85,20 +85,18 @@ def test_should_not_use_active_but_disabled_provider(mocker):
 
 def test_should_send_personalised_template_to_correct_sms_provider_and_persist(
     sample_sms_template_with_html,
-    mocker
+    mock_sms_client
 ):
     db_notification = create_notification(template=sample_sms_template_with_html,
                                           to_field="+16502532222", personalisation={"name": "Jo"},
                                           status='created',
                                           reply_to_text=sample_sms_template_with_html.service.get_default_sms_sender())
 
-    mocker.patch('app.aws_sns_client.send_sms')
-
     send_to_providers.send_sms_to_provider(
         db_notification
     )
 
-    aws_sns_client.send_sms.assert_called_once_with(
+    mock_sms_client.send_sms.assert_called_once_with(
         to=validate_and_format_phone_number("+16502532222"),
         content="Sample service: Hello Jo\nHere is <em>some HTML</em> & entities",
         reference=str(db_notification.id),
@@ -109,7 +107,7 @@ def test_should_send_personalised_template_to_correct_sms_provider_and_persist(
 
     assert notification.status == 'sent'
     assert notification.sent_at <= datetime.utcnow()
-    assert notification.sent_by == 'sns'
+    assert notification.sent_by == mock_sms_client.get_name()
     assert notification.billable_units == 1
     assert notification.personalisation == {"name": "Jo"}
 
