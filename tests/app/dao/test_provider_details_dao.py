@@ -38,11 +38,35 @@ def setup_provider_details(db_session):
         'active': True,
         'supports_international': False,
     })
-
     db_session.add(prioritised_email_provider)
+
+    deprioritised_email_provider = ProviderDetails(**{
+        'display_name': 'foo',
+        'identifier': 'foo',
+        'priority': 50,
+        'notification_type': 'email',
+        'active': True,
+        'supports_international': False,
+    })
+    db_session.add(deprioritised_email_provider)
+
+    prioritised_sms_provider = ProviderDetails(**{
+        'display_name': 'foo',
+        'identifier': 'foo',
+        'priority': 10,
+        'notification_type': 'sms',
+        'active': True,
+        'supports_international': False,
+    })
+    db_session.add(prioritised_sms_provider)
+
     db_session.commit()
 
-    return [prioritised_email_provider]
+    return [
+        prioritised_email_provider,
+        deprioritised_email_provider,
+        prioritised_sms_provider
+    ]
 
 
 def set_primary_sms_provider(identifier):
@@ -77,12 +101,14 @@ def test_can_get_sms_providers_in_order_of_priority(restore_provider_details):
 
 def test_can_get_email_providers_in_order_of_priority(setup_provider_details):
     providers = get_provider_details_by_notification_type('email')
-    [prioritised_email_provider] = setup_provider_details
+    [prioritised_email_provider, deprioritised_email_provider, _] = setup_provider_details
     assert providers[0].identifier == prioritised_email_provider.identifier
+    assert providers[1].identifier == deprioritised_email_provider.identifier
 
 
 def test_can_get_email_providers(setup_provider_details):
-    assert len(get_provider_details_by_notification_type('email')) == len(setup_provider_details)
+    email_providers = list(filter(lambda provider: provider.notification_type == 'email', setup_provider_details))
+    assert len(get_provider_details_by_notification_type('email')) == len(email_providers)
     types = [provider.notification_type for provider in get_provider_details_by_notification_type('email')]
     assert all('email' == notification_type for notification_type in types)
 
@@ -310,47 +336,75 @@ def test_get_current_sms_provider_returns_active_only(restore_provider_details):
     assert current_provider.identifier != new_current_provider.identifier
 
 
-@freeze_time('2018-06-28 12:00')
-def test_dao_get_provider_stats_returns_data_in_type_and_identifier_order(notify_db_session):
-    service_1 = create_service(service_name='1')
-    service_2 = create_service(service_name='2')
-    sms_template_1 = create_template(service_1, 'sms')
-    sms_template_2 = create_template(service_2, 'sms')
-
-    create_ft_billing('2017-06-05', 'sms', sms_template_2, service_1, provider='mmg', billable_unit=4)
-    create_ft_billing('2018-05-31', 'sms', sms_template_1, service_1, provider='sns', billable_unit=1)
-    create_ft_billing('2018-06-01', 'sms', sms_template_1, service_1, provider='sns',
-                      rate_multiplier=2, billable_unit=1)
-    create_ft_billing('2018-06-03', 'sms', sms_template_2, service_1, provider='mmg', billable_unit=4)
-    create_ft_billing('2018-06-15', 'sms', sms_template_1, service_2, provider='mmg', billable_unit=1)
-    create_ft_billing('2018-06-28', 'sms', sms_template_2, service_2, provider='sns', billable_unit=2)
-
+def test_dao_get_provider_stats_returns_data_in_type_and_identifier_order(setup_provider_details):
+    all_provider_details = setup_provider_details
     result = dao_get_provider_stats()
+    assert len(result) == len(all_provider_details)
 
-    assert len(result) == 7
+    [prioritised_email_provider, deprioritised_email_provider, prioritised_sms_provider] = setup_provider_details
 
-    assert result[0].identifier == 'ses'
-    assert result[0].display_name == 'AWS SES'
-    assert result[0].created_by_name is None
-    assert result[0].current_month_billable_sms == 0
+    assert result[0].identifier == prioritised_email_provider.identifier
+    assert result[0].display_name == prioritised_email_provider.display_name
 
-    assert result[1].identifier == 'sns'
-    assert result[1].display_name == 'AWS SNS'
-    assert result[1].supports_international is False
-    assert result[1].active is True
-    assert result[1].current_month_billable_sms == 4
+    assert result[1].identifier == prioritised_sms_provider.identifier
+    assert result[1].display_name == prioritised_sms_provider.display_name
 
-    assert result[2].identifier == 'mmg'
-    assert result[2].notification_type == 'sms'
-    assert result[2].supports_international is True
-    assert result[2].active is True
-    assert result[2].current_month_billable_sms == 5
+    assert result[2].identifier == deprioritised_email_provider.identifier
+    assert result[2].display_name == deprioritised_email_provider.display_name
 
-    assert result[3].identifier == 'firetext'
-    assert result[3].current_month_billable_sms == 0
 
-    assert result[4].identifier == 'twilio'
+@freeze_time('2018-06-28 12:00')
+def test_dao_get_provider_stats_ignores_billable_sms_older_than_1_month(setup_provider_details):
+    sms_provider = next((provider for provider in setup_provider_details if provider.notification_type == 'sms'), None)
 
-    assert result[5].identifier == 'loadtesting'
-    assert result[5].current_month_billable_sms == 0
-    assert result[5].supports_international is False
+    service = create_service(service_name='1')
+    sms_template = create_template(service, 'sms')
+
+    create_ft_billing('2017-06-05', 'sms', sms_template, service, provider=sms_provider.identifier, billable_unit=4)
+
+    results = dao_get_provider_stats()
+
+    sms_provider_result = next((result for result in results if result.identifier == sms_provider.identifier), None)
+
+    assert sms_provider_result.current_month_billable_sms == 0
+
+
+@freeze_time('2018-06-28 12:00')
+def test_dao_get_provider_stats_counts_billable_sms_within_last_month(setup_provider_details):
+    sms_provider = next((provider for provider in setup_provider_details if provider.notification_type == 'sms'), None)
+
+    service = create_service(service_name='1')
+    sms_template = create_template(service, 'sms')
+
+    create_ft_billing('2018-06-05', 'sms', sms_template, service, provider=sms_provider.identifier, billable_unit=4)
+
+    results = dao_get_provider_stats()
+
+    sms_provider_result = next((result for result in results if result.identifier == sms_provider.identifier), None)
+
+    assert sms_provider_result.current_month_billable_sms == 4
+
+
+
+@freeze_time('2018-06-28 12:00')
+def test_dao_get_provider_stats_counts_billable_sms_within_last_month_with_rate_multiplier(setup_provider_details):
+    sms_provider = next((provider for provider in setup_provider_details if provider.notification_type == 'sms'), None)
+
+    service = create_service(service_name='1')
+    sms_template = create_template(service, 'sms')
+
+    create_ft_billing(
+        '2018-06-05',
+        'sms',
+        sms_template,
+        service,
+        provider=sms_provider.identifier,
+        billable_unit=4,
+        rate_multiplier=2
+    )
+
+    results = dao_get_provider_stats()
+
+    sms_provider_result = next((result for result in results if result.identifier == sms_provider.identifier), None)
+
+    assert sms_provider_result.current_month_billable_sms == 8
