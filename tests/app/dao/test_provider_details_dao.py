@@ -30,7 +30,7 @@ def setup_provider_details(db_session):
     db_session.query(ProviderRates).delete()
     db_session.query(ProviderDetails).delete()
 
-    provider_details = ProviderDetails(**{
+    prioritised_email_provider = ProviderDetails(**{
         'display_name': 'foo',
         'identifier': 'foo',
         'priority': 10,
@@ -39,10 +39,10 @@ def setup_provider_details(db_session):
         'supports_international': False,
     })
 
-    db_session.add(provider_details)
+    db_session.add(prioritised_email_provider)
     db_session.commit()
 
-    return [provider_details]
+    return [prioritised_email_provider]
 
 
 def set_primary_sms_provider(identifier):
@@ -75,10 +75,10 @@ def test_can_get_sms_providers_in_order_of_priority(restore_provider_details):
     assert providers[0].priority < providers[1].priority
 
 
-def test_can_get_email_providers_in_order_of_priority(restore_provider_details):
+def test_can_get_email_providers_in_order_of_priority(setup_provider_details):
     providers = get_provider_details_by_notification_type('email')
-
-    assert providers[0].identifier == "ses"
+    [prioritised_email_provider] = setup_provider_details
+    assert providers[0].identifier == prioritised_email_provider.identifier
 
 
 def test_can_get_email_providers(setup_provider_details):
