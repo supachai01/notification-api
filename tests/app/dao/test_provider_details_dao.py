@@ -4,7 +4,7 @@ from datetime import datetime
 from freezegun import freeze_time
 from sqlalchemy import asc, desc
 
-from app.models import ProviderDetails, ProviderDetailsHistory
+from app.models import ProviderDetails, ProviderDetailsHistory, ProviderRates
 from app import clients
 from app.dao.provider_details_dao import (
     get_alternative_sms_provider,
@@ -23,6 +23,26 @@ from tests.app.db import (
     create_service,
     create_template,
 )
+
+
+@pytest.fixture(scope='function')
+def setup_provider_details(db_session):
+    db_session.query(ProviderRates).delete()
+    db_session.query(ProviderDetails).delete()
+
+    provider_details = ProviderDetails(**{
+        'display_name': 'foo',
+        'identifier': 'foo',
+        'priority': 10,
+        'notification_type': 'email',
+        'active': True,
+        'supports_international': False,
+    })
+
+    db_session.add(provider_details)
+    db_session.commit()
+
+    return [provider_details]
 
 
 def set_primary_sms_provider(identifier):
@@ -61,8 +81,8 @@ def test_can_get_email_providers_in_order_of_priority(restore_provider_details):
     assert providers[0].identifier == "ses"
 
 
-def test_can_get_email_providers(restore_provider_details):
-    assert len(get_provider_details_by_notification_type('email')) == 1
+def test_can_get_email_providers(setup_provider_details):
+    assert len(get_provider_details_by_notification_type('email')) == len(setup_provider_details)
     types = [provider.notification_type for provider in get_provider_details_by_notification_type('email')]
     assert all('email' == notification_type for notification_type in types)
 
