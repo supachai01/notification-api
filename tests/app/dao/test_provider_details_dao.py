@@ -385,7 +385,6 @@ def test_dao_get_provider_stats_counts_billable_sms_within_last_month(setup_prov
     assert sms_provider_result.current_month_billable_sms == 4
 
 
-
 @freeze_time('2018-06-28 12:00')
 def test_dao_get_provider_stats_counts_billable_sms_within_last_month_with_rate_multiplier(setup_provider_details):
     sms_provider = next((provider for provider in setup_provider_details if provider.notification_type == 'sms'), None)
