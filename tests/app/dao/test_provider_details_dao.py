@@ -107,7 +107,7 @@ def test_can_get_email_providers_in_order_of_priority(setup_provider_details):
 
 
 def test_can_get_email_providers(setup_provider_details):
-    email_providers = list(filter(lambda provider: provider.notification_type == 'email', setup_provider_details))
+    email_providers = [provider for provider in setup_provider_details if provider.notification_type == 'email']
     assert len(get_provider_details_by_notification_type('email')) == len(email_providers)
     types = [provider.notification_type for provider in get_provider_details_by_notification_type('email')]
     assert all('email' == notification_type for notification_type in types)
