@@ -1,8 +1,8 @@
 **/__pycache__
 **/*.pyc
-venvc
 .git
 *.pyo
 *.pyd
 .Python
 env
+venv
