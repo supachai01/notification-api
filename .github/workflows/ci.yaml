@@ -269,7 +269,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/tag-test'
     steps:
-      - uses: actions/checkout@tag-test
+      - uses: actions/checkout@v1
       - name: Create tag
         uses: actions/github-script@v2
         with:
