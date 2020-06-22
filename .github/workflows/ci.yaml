@@ -279,6 +279,4 @@ jobs:
               message: 'initial ci/cd version\n',
               object: ${{ github.sha }},
               type: "commit"
-            , function(err, res) {
-                console.log(err, res);
             })
