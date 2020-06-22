@@ -275,5 +275,5 @@ jobs:
         uses: actions/github-script@v2
         with:
           script: |
-            git tag v0.0.1
-            git push origin v0.0.1
+            echo "git tag v0.0.1"
+            echo "git push origin v0.0.1"
