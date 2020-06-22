@@ -269,8 +269,10 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/tag-test'
     steps:
-      - uses: actions/checkout@v1
-      - name: Crete tag
-        run: |
-          git tag v0.0.1
-          git push origin v0.0.1
+      - uses: actions/checkout@tag-test
+      - name: Create tag
+        uses: actions/github-script@v2
+        with:
+          script: |
+            echo "git tag v0.0.1"
+            echo "git push origin v0.0.1"
