@@ -265,17 +265,12 @@ jobs:
           service: dev-notification-celery-beat-service
           cluster: dev-notification-cluster
           wait-for-service-stability: true
-
   create-tag:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/tag-test'
     steps:
       - uses: actions/checkout@v1
-      - name: Create tag
-        uses: actions/github-script@v2
-        id: create-tag
-        with:
-          script: return "git tag v0.0.1"
-          result-encoding: string
-      -name: Get result
-      run: echo "${{steps.create-tag.result}}"
+      - name: Crete tag
+        run: |
+          git tag v0.0.1
+          git push origin v0.0.1
