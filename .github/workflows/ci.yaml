@@ -276,7 +276,7 @@ jobs:
             github.git.createTag({
               tag: "v0.0.1",
               message: "initial ci/cd version\n",
-              object: ${{ github.sha }},
+              object: context.sha,
               type: "tree"
             })
 
