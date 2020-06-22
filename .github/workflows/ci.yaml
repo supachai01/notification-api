@@ -267,7 +267,6 @@ jobs:
           wait-for-service-stability: true
 
   create-tag:
-    name: Create Tag
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/tag-test'
     steps:
