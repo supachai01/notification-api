@@ -273,7 +273,9 @@ jobs:
       - name: Create tag
         uses: actions/github-script@v2
         with:
-          result-encoding: string
           script: |
-            echo "git tag v0.0.1"
-            echo "git push origin v0.0.1"
+            github.git.createTag({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          tags: 'v0.0.1'
+                        })
