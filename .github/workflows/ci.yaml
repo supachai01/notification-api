@@ -273,7 +273,6 @@ jobs:
       - uses: actions/checkout@v1
       - name: Create tag
         uses: actions/github-script@v2
-        with:
-          script: |
-            echo "git tag v0.0.1"
-            echo "git push origin v0.0.1"
+        run: |
+          echo "git tag v0.0.1"
+          echo "git push origin v0.0.1"
