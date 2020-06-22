@@ -273,6 +273,9 @@ jobs:
       - uses: actions/checkout@v1
       - name: Create tag
         uses: actions/github-script@v2
-        run: |
-          echo "git tag v0.0.1"
-          echo "git push origin v0.0.1"
+        id: create-tag
+        with:
+          script: return "git tag v0.0.1"
+          result-encoding: string
+      -name: Get result
+      run: echo "${{steps.create-tag.result}}"
