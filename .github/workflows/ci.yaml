@@ -275,7 +275,12 @@ jobs:
         with:
           script: |
             github.git.createTag({
-                          owner: context.repo.owner,
-                          repo: context.repo.repo,
-                          tags: 'v0.0.1'
-                        })
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag: 'v0.0.1',
+              message: 'initial ci/cd version\n',
+              object: ${{ github.sha }},
+              type: "commit"
+            , function(err, res) {
+                console.log(err, res);
+            })
