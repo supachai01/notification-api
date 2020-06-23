@@ -274,10 +274,8 @@ jobs:
         uses: actions/github-script@v2
         with:
           script: |
-            github.git.createTag({
-              tag: "v0.0.1",
-              message: "initial ci/cd version\n",
-              object: context.sha,
-              type: "commit"
+            github.git.createRef({
+              ref: "refs/tags/v1.0-test",
+              sha: $ {{ github.sha }}
             })
 
