@@ -276,6 +276,7 @@ jobs:
         uses: actions/github-script@v2
         with:
           github-token: ${{secrets.CD_TOKEN}}
+          debug: true
           script: |
             github.git.createRef({
               ref: "refs/tags/v1.0-test",
