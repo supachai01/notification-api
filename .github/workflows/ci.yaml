@@ -271,10 +271,10 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/tag-test'
     steps:
-      - uses: actions/checkout@v1
-        name: Create tag
-        env:
-          GITHUB_TOKEN: ${{secrets.CD_TOKEN}}
+      - uses: actions/checkout@v2
+          with:
+            token: ${{secrets.CD_TOKEN}}
+      - name: Create tag
         run: |
           git tag v1.0-test ${{ github.sha }}
           git push origin v1.0-test
