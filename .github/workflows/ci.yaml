@@ -272,7 +272,7 @@ jobs:
     if: github.ref == 'refs/heads/tag-test'
     steps:
       - uses: actions/checkout@v1
-      - name: Create tag
+        name: Create tag
         env:
           GITHUB_TOKEN: ${{secrets.CD_TOKEN}}
         run: |
