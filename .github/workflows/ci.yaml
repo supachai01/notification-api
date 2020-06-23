@@ -272,8 +272,8 @@ jobs:
     if: github.ref == 'refs/heads/tag-test'
     steps:
       - uses: actions/checkout@v2
-          with:
-            token: ${{secrets.CD_TOKEN}}
+        with:
+          token: ${{secrets.CD_TOKEN}}
       - name: Create tag
         run: |
           git tag v1.0-test ${{ github.sha }}
