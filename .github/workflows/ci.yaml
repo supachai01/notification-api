@@ -273,6 +273,7 @@ jobs:
       - name: Create tag
         uses: actions/github-script@v2
         with:
+          github-token: ${{secrets.CD_TOKEN}}
           script: |
             github.git.createRef({
               ref: "refs/tags/v1.0-test",
