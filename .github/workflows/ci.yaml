@@ -270,12 +270,12 @@ jobs:
   create-tag:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/tag-test'
-    env:
-      GITHUB_REPOSITORY: "department-of-veterans-affairs/notification-api"
     steps:
       - uses: actions/checkout@v1
       - name: Create tag
         uses: actions/github-script@v2
+        env:
+          GITHUB_REPOSITORY: "department-of-veterans-affairs/notification-api"
         with:
           github-token: ${{secrets.CD_TOKEN}}
           script: |
