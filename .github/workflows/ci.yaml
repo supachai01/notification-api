@@ -273,14 +273,6 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Create tag
-        uses: actions/github-script@v2
-        with:
-          github-token: ${{secrets.CD_TOKEN}}
-          script: |
-            github.git.createRef({
-              repo: "department-of-veterans-affairs",
-              owner: "notification-api",
-              ref: "refs/tags/v1.0-test",
-              sha: context.sha
-            })
-
+        run: |
+          git tag v1.0-test ${{ github.sha }}
+          git push origin v1.0-test
