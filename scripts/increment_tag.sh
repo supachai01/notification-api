@@ -1,8 +1,8 @@
 #!/bin/bash
 
 function increase_patch_number () {
-  patch_version=`echo $1 | sed 's/.*\(.[0-9]\)/\1/'`
-  first_portion=`echo $1 | sed 's/\(.*\).[0-9]/\1/'`
+  patch_version=`echo $1 | sed 's/\(.*[0-9]\.\)\([0-9]\)/\2/'`
+  first_portion=`echo $1 | sed 's/\(.*[0-9]\.\)\([0-9]\)/\1/'`
   ((patch_version++))
   echo $first_portion$patch_version
 }
