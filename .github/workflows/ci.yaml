@@ -276,4 +276,4 @@ jobs:
           ssh-key: ${{ secrets.CD_KEY }}
       - name: Create tag
         run: |
-          ./scripts/increment_tag.sh ${{ github.sha }}
+          sh ./scripts/increment_tag.sh ${{ github.sha }}
