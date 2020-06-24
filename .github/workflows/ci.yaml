@@ -273,7 +273,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ssh-private-key: ${{ secrets.CD_KEY }}
+          ssh-key: ${{ secrets.CD_KEY }}
       - name: Create tag
         run: |
           ./scripts/increment_tag.sh ${{ github.sha }}
