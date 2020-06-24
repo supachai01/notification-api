@@ -1,6 +1,6 @@
 #!/bin/bash
 
-function increase_patch_number () {
+increase_patch_number () {
   patch_version=`echo $1 | sed 's/\(.*[0-9]\.\)\([0-9]\)/\2/'`
   first_portion=`echo $1 | sed 's/\(.*[0-9]\.\)\([0-9]\)/\1/'`
 
@@ -14,7 +14,7 @@ function increase_patch_number () {
   echo $result
 }
 
-function get_latest_version_tag () {
+get_latest_version_tag () {
   local latest_version_tag=$(git describe --tags `git rev-list --tags --max-count=1`)
   if [ -z "$latest_version_tag" ]; then
     latest_version_tag="rc-0.0.0"
@@ -22,7 +22,7 @@ function get_latest_version_tag () {
   echo $latest_version_tag
 }
 
-function create_git_tag () {
+create_git_tag () {
   echo "git tag $1 $2"
   echo "git push origin $1"
 }
