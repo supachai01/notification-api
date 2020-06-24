@@ -273,7 +273,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          token: ${{secrets.CD_TOKEN}}
+          ssh-private-key: ${{ secrets.CD_KEY }}
       - name: Create tag
         run: |
           git tag v1.0-test ${{ github.sha }}
