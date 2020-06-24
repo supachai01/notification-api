@@ -1,0 +1,17 @@
+name: CI
+
+on: [tag]
+env:
+  tf_version: 'latest'
+  TF_LOG: INFO
+  TF_WORKSPACE: staging
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v1
+      - name: Run tests with docker-compose-test
+        run: |
+          echo "staging is kicked off"
