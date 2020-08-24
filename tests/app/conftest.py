@@ -1292,5 +1292,41 @@ def mocked_provider_stats(sample_user, mocker):
     ]
 
 
+@pytest.fixture(scope='function')
+def setup_sms_providers(db_session):
+    db_session.query(ProviderRates).delete()
+    db_session.query(ProviderDetails).delete()
+    db_session.query(ProviderDetailsHistory).delete()
+
+    providers = [
+        ProviderDetails(**{
+            'display_name': 'foo',
+            'identifier': 'foo',
+            'priority': 10,
+            'notification_type': 'sms',
+            'active': False,
+            'supports_international': False,
+        }),
+        ProviderDetails(**{
+            'display_name': 'bar',
+            'identifier': 'bar',
+            'priority': 20,
+            'notification_type': 'sms',
+            'active': True,
+            'supports_international': False,
+        }),
+        ProviderDetails(**{
+            'display_name': 'baz',
+            'identifier': 'baz',
+            'priority': 30,
+            'notification_type': 'sms',
+            'active': True,
+            'supports_international': False,
+        })
+    ]
+    db_session.add_all(providers)
+    return providers
+
+
 def datetime_in_past(days=0, seconds=0):
     return datetime.now(tz=pytz.utc) - timedelta(days=days, seconds=seconds)

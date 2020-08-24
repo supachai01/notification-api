@@ -25,7 +25,6 @@ from app.clients.email.sendgrid_client import SendGridClient
 from app.clients.sms.firetext import FiretextClient
 from app.clients.sms.loadtesting import LoadtestingClient
 from app.clients.sms.mmg import MMGClient
-from app.clients.sms.aws_sns import AwsSnsClient
 from app.clients.sms.twilio import TwilioSMSClient
 from app.clients.performance_platform.performance_platform_client import PerformancePlatformClient
 from app.encryption import Encryption
@@ -58,7 +57,6 @@ mmg_client = MMGClient()
 aws_ses_client = AwsSesClient()
 govdelivery_client = GovdeliveryClient()
 send_grid_client = SendGridClient()
-aws_sns_client = AwsSnsClient()
 twilio_sms_client = TwilioSMSClient(
     account_sid=os.getenv('TWILIO_ACCOUNT_SID'),
     auth_token=os.getenv('TWILIO_AUTH_TOKEN'),
@@ -96,7 +94,7 @@ def create_app(application):
     firetext_client.init_app(application, statsd_client=statsd_client)
     loadtest_client.init_app(application, statsd_client=statsd_client)
     mmg_client.init_app(application, statsd_client=statsd_client)
-    aws_sns_client.init_app(application, statsd_client=statsd_client)
+    # aws_sns_client.init_app(application, statsd_client=statsd_client)
     aws_ses_client.init_app(application.config['AWS_REGION'], statsd_client=statsd_client)
     send_grid_client.init_app(application.config['SENDGRID_API_KEY'], statsd_client=statsd_client)
     govdelivery_client.init_app(application.config['GRANICUS_TOKEN'], statsd_client)
@@ -110,7 +108,7 @@ def create_app(application):
     performance_platform_client.init_app(application)
     document_download_client.init_app(application)
     clients.init_app(
-        sms_clients=[firetext_client, mmg_client, aws_sns_client, loadtest_client, twilio_sms_client],
+        sms_clients=[firetext_client, mmg_client, loadtest_client, twilio_sms_client],
         email_clients=[aws_ses_client, send_grid_client, govdelivery_client]
     )
 

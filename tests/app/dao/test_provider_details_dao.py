@@ -92,42 +92,6 @@ def setup_provider_details(db_session):
 
 
 @pytest.fixture(scope='function')
-def setup_sms_providers(db_session):
-    db_session.query(ProviderRates).delete()
-    db_session.query(ProviderDetails).delete()
-    db_session.query(ProviderDetailsHistory).delete()
-
-    providers = [
-        ProviderDetails(**{
-            'display_name': 'foo',
-            'identifier': 'foo',
-            'priority': 10,
-            'notification_type': 'sms',
-            'active': False,
-            'supports_international': False,
-        }),
-        ProviderDetails(**{
-            'display_name': 'bar',
-            'identifier': 'bar',
-            'priority': 20,
-            'notification_type': 'sms',
-            'active': True,
-            'supports_international': False,
-        }),
-        ProviderDetails(**{
-            'display_name': 'baz',
-            'identifier': 'baz',
-            'priority': 30,
-            'notification_type': 'sms',
-            'active': True,
-            'supports_international': False,
-        })
-    ]
-    db_session.add_all(providers)
-    return providers
-
-
-@pytest.fixture(scope='function')
 def setup_sms_providers_with_history(db_session, setup_sms_providers):
     db_session.query(ProviderDetailsHistory).delete()
     providers_history = [ProviderDetailsHistory.from_original(provider) for provider in setup_sms_providers]
@@ -206,10 +170,10 @@ def test_can_get_email_providers(setup_provider_details):
     assert all('email' == notification_type for notification_type in types)
 
 
-def test_should_not_error_if_any_provider_in_code_not_in_database(restore_provider_details):
-    ProviderDetails.query.filter_by(identifier='sns').delete()
-
-    assert clients.get_sms_client('sns')
+def test_should_not_error_if_any_provider_in_code_not_in_database(mock_sms_client):
+    clients.sms_clients[mock_sms_client.get_name()] = mock_sms_client
+    assert clients.get_sms_client(mock_sms_client.get_name())
+    del clients.sms_clients[mock_sms_client.get_name()]
 
 
 @freeze_time('2000-01-01T00:00:00')

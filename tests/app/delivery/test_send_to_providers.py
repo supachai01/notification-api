@@ -10,7 +10,8 @@ from requests import HTTPError
 
 
 import app
-from app import aws_sns_client, mmg_client
+from app import aws_sns_client, mmg_client, clients
+from app.clients.sms import SmsClient
 from app.dao import (provider_details_dao, notifications_dao)
 from app.dao.provider_details_dao import dao_switch_sms_provider_to_provider_with_identifier
 from app.delivery import send_to_providers
@@ -38,20 +39,35 @@ from tests.app.db import (
 from tests.conftest import set_config_values
 
 
-def test_should_return_highest_priority_active_provider(restore_provider_details):
-    providers = provider_details_dao.get_provider_details_by_notification_type('sms')
+@pytest.fixture(scope='function')
+def setup_sms_clients(setup_sms_providers, mocker):
+    old_sms_clients = clients.sms_clients.copy()
+    clients.sms_clients.clear()
+
+    for provider in setup_sms_providers:
+        mocked_client = SmsClient()
+        mocker.patch.object(mocked_client, 'get_name', return_value=provider.identifier)
+        clients.sms_clients[provider.identifier] = mocked_client
+
+    yield
+
+    clients.sms_clients = old_sms_clients.copy()
+
+
+def test_should_return_highest_priority_active_provider(setup_sms_providers, setup_sms_clients):
+    providers = [p for p in provider_details_dao.get_provider_details_by_notification_type('sms') if p.active]
 
     first = providers[0]
     second = providers[1]
 
-    assert send_to_providers.provider_to_use('sms', '1234').name == first.identifier
+    assert send_to_providers.provider_to_use('sms', '1234').get_name() == first.identifier
 
     first.priority, second.priority = second.priority, first.priority
 
     provider_details_dao.dao_update_provider_details(first)
     provider_details_dao.dao_update_provider_details(second)
 
-    assert send_to_providers.provider_to_use('sms', '1234').name == second.identifier
+    assert send_to_providers.provider_to_use('sms', '1234').get_name() == second.identifier
 
     first.priority, second.priority = second.priority, first.priority
     first.active = False
@@ -59,12 +75,12 @@ def test_should_return_highest_priority_active_provider(restore_provider_details
     provider_details_dao.dao_update_provider_details(first)
     provider_details_dao.dao_update_provider_details(second)
 
-    assert send_to_providers.provider_to_use('sms', '1234').name == second.identifier
+    assert send_to_providers.provider_to_use('sms', '1234').get_name() == second.identifier
 
     first.active = True
     provider_details_dao.dao_update_provider_details(first)
 
-    assert send_to_providers.provider_to_use('sms', '1234').name == first.identifier
+    assert send_to_providers.provider_to_use('sms', '1234').get_name() == first.identifier
 
 
 def test_should_not_use_active_but_disabled_provider(mocker):
