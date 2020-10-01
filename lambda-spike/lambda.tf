@@ -3,24 +3,28 @@ provider "aws" {
 }
 
 variable "function_name" {
-  default = "minimal_lambda_function"
+  default = "lambda_spike"
 }
 
 variable "handler" {
-  default = "lambda.handler"
+  default = "test_email.handler"
 }
 
 variable "runtime" {
   default = "python3.6"
 }
 
+variable "filename" {
+  default = "test_email.zip"
+}
+
 resource "aws_lambda_function" "lambda_function" {
   role             = aws_iam_role.lambda_exec_role.arn
   handler          = var.handler
   runtime          = var.runtime
-  filename         = "lambda.zip"
+  filename         = var.filename
   function_name    = var.function_name
-  source_code_hash = base64sha256("lambda.zip")
+  source_code_hash = base64sha256(var.filename)
 }
 
 resource "aws_iam_role" "lambda_exec_role" {
