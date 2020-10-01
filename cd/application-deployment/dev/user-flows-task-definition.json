@@ -1,0 +1,33 @@
+{
+    "family": "user-flows-task",
+    "executionRoleArn": "arn:aws:iam::437518843863:role/dev-notification-ecs-task-execution-role",
+    "taskRoleArn": "arn:aws:iam::437518843863:role/dev-notification-api-task-role",
+    "networkMode": "awsvpc",
+    "containerDefinitions": [{
+        "name": "user-flows",
+        "image": "437518843863.dkr.ecr.us-east-2.amazonaws.com/user-flows-test:1.0.0",
+        "cpu": 512,
+        "memory": 1024,
+        "logConfiguration": {
+            "logDriver": "awslogs",
+            "options": {
+                "awslogs-group": "dev-notification-api-log-group",
+                "awslogs-region": "us-east-2",
+                "awslogs-stream-prefix": "ecs"
+            }
+        },
+        "secrets": [{
+            "name": "notification_url",
+            "valueFrom": "arn:aws:ssm:us-east-2:437518843863:parameter/dev/notification-api/api-host-name"
+        },
+        {
+            "name": "NOTIFICATION_SECRET",
+            "valueFrom": "arn:aws:ssm:us-east-2:437518843863:parameter/dev/notification-api/admin-client-secret"
+        }]
+    }],
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "cpu": "512",
+    "memory": "1024"
+}
