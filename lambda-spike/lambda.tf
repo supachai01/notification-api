@@ -7,7 +7,7 @@ variable "function_name" {
 }
 
 variable "handler" {
-  default = "test_email.handler"
+  default = "lambda.handler"
 }
 
 variable "runtime" {
@@ -15,7 +15,7 @@ variable "runtime" {
 }
 
 variable "filename" {
-  default = "test_email.zip"
+  default = "lambda.zip"
 }
 
 resource "aws_lambda_function" "lambda_function" {
