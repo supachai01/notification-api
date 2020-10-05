@@ -30,8 +30,3 @@ def test_retrieval():
 
 def handler(event, context):
     test_retrieval()
-
-    print("finished!")
-
-    # response = requests.get('https://jsonplaceholder.typicode.com/posts')
-    # posts = json.loads(response.text) #load data into a dict of objects, posts

@@ -15,14 +15,7 @@ variable "runtime" {
 }
 
 variable "filename" {
-  default = "lambda.zip"
-}
-
-resource "aws_lambda_layer_version" "dependencies_layer" {
-  filename   = "build-dependencies-layer.zip"
-  layer_name = "dependencies"
-
-  compatible_runtimes = ["python3.6"]
+  default = "lambda-spike.zip"
 }
 
 resource "aws_lambda_function" "lambda_function" {
@@ -32,7 +25,6 @@ resource "aws_lambda_function" "lambda_function" {
   filename         = var.filename
   function_name    = var.function_name
   source_code_hash = base64sha256(var.filename)
-  layers           = [aws_lambda_layer_version.dependencies_layer.arn]
 }
 
 resource "aws_iam_role" "lambda_exec_role" {
